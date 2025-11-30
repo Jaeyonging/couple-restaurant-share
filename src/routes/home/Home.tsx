@@ -1,0 +1,25 @@
+import React, { useEffect, useRef, useState } from 'react'
+import { NaverMap } from '../../component/NaverMap';
+import ApiErrorBoundary from '../../boundary/ApiErrorBoundary';
+import { SearchFetcher } from '../../api/fetchHooks';
+import HomeContainer from '../../component/Home/HomeContainer';
+import SearchInput from '../../component/SearchInput';
+import ResultsContainer from '../../component/ResultsContainer';
+
+export const Home = () => {
+  const [longtitude, setLongtitude] = useState(37.5530049)
+  const [latitude, setLatitude] = useState(127.0180)
+  const [search, setSearch] = useState('');
+
+  return (
+    <div className='relative w-full h-screen'>
+      <SearchInput search={search} setSearch={setSearch} />
+      <NaverMap longtitude={longtitude} latitude={latitude} />
+      <ApiErrorBoundary>
+        <SearchFetcher keyword={search}>
+          <ResultsContainer />
+        </SearchFetcher>
+      </ApiErrorBoundary>
+    </div>
+  );
+};
