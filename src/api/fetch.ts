@@ -2,8 +2,8 @@ import axios from "axios";
 import { NAVER_CLIENT_KEY, NAVER_CLIENT_SECRET } from "../types/types";
 
 
-export const fetchNaverSearch = async (keyword: string) => {
-    const response = await axios.get(`/api/v1/search/local.json?query=${keyword}&display=10&sort=sim`, {
+const fetchNaverSearch = async (keyword: string) => {
+    const response = await axios.get(`/api/v1/search/local.json?query=${keyword}&display=10&start=1&sort=random`, {
         headers: {
             'X-Naver-Client-Id': NAVER_CLIENT_KEY,
             'X-Naver-Client-Secret': NAVER_CLIENT_SECRET,
@@ -11,4 +11,35 @@ export const fetchNaverSearch = async (keyword: string) => {
     });
 
     return response.data;
+};
+
+const fetchNaverImage = async (keyword: string) => {
+    const response = await axios.get(`/api/v1/search/image.json?query=${keyword}+대표 음식점 사진&display=10&sort=sim`, {
+        headers: {
+            'X-Naver-Client-Id': NAVER_CLIENT_KEY,
+            'X-Naver-Client-Secret': NAVER_CLIENT_SECRET,
+        },
+    });
+
+    return response.data;
+};
+
+
+export const fetchNaverSearchWithImage = async (keyword: string) => {
+    const searchRes = await fetchNaverSearch(keyword);
+    const items = searchRes.items;
+
+    const itemsWithImage = await Promise.all(
+        items.map(async (item: any) => {
+            const cleanTitle = item.title.replace(/<[^>]*>/g, "");
+            const imgRes = await fetchNaverImage(cleanTitle);
+
+            return {
+                ...item,
+                thumbnail: imgRes.items?.[0]?.thumbnail ?? null, 
+            };
+        })
+    );
+
+    return { ...searchRes.data, items: itemsWithImage };
 };

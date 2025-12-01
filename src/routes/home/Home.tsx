@@ -12,7 +12,7 @@ export const Home = () => {
   const [search, setSearch] = useState('');
 
   return (
-    <div className='relative w-full h-screen'>
+    <div className='flex flex-col w-full h-[100vh] overflow-hidden'>
       <SearchInput search={search} setSearch={setSearch} />
       <NaverMap longtitude={longtitude} latitude={latitude} />
       <ApiErrorBoundary>

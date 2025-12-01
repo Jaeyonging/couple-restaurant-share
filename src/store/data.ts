@@ -2,14 +2,18 @@ import { create } from "zustand";
 
 interface FetchDataState {
     data: any;
+    imageData: any;
     setData: (newData: any) => void;
+    setImageData: (newImageData: any) => void;
     resetData: () => void;
 }
 
 const useFetchDataStore = create<FetchDataState>((set) => ({
     data: null,
+    imageData: null,
     setData: (newData) => set({ data: newData }),
-    resetData: () => set({ data: null }),
+    setImageData: (newImageData) => set({ imageData: newImageData }),
+    resetData: () => set({ data: null, imageData: null }),
 }));
 
 

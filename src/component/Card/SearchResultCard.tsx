@@ -1,5 +1,6 @@
 import React from 'react'
 import { useMarkerStore, useCurrentMarkerStore } from '../../store/data';
+import { RenderImg } from '../RenderImg';
 
 interface Props {
     data: any
@@ -8,10 +9,10 @@ interface Props {
 const SearchResultCard = ({ data }: Props) => {
     const { marker, setMarker } = useMarkerStore();
     const { setCurrentMarker } = useCurrentMarkerStore();
-    const { title, address,category, description, link, mapx, mapy, roadAddress, telephone } = data;
+    const { title, address,category, description, link, mapx, mapy, roadAddress, telephone, thumbnail } = data;
     
     const clickAddress = (e: React.MouseEvent) => {
-        e.stopPropagation(); // 카드 클릭 이벤트와 분리
+        e.stopPropagation();
         setMarker([...marker, {
             mapx: mapx,
             mapy: mapy,
@@ -27,10 +28,13 @@ const SearchResultCard = ({ data }: Props) => {
     }
 
     return (
-        <div className='w-[100%] h-[100%] p-4 rounded-[20px] bg-[red] cursor-pointer' onClick={clickAddress}>
+        <div className='p-2 flex flex-col gap-2 rounded-[20px] bg-[red] cursor-pointer' onClick={clickAddress}>
             <div
                 dangerouslySetInnerHTML={{ __html: title }}
             />
+            {thumbnail && (
+                <RenderImg imgurl={thumbnail} alt={title} className='w-[200px]' />
+            )}
             <span>{address}</span>
             <span>{category}</span>
             <span>{description}</span>
