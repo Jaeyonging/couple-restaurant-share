@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useFetchDataStore } from '../store/data';
-import SearchResultCard from './Card/SearchResultCard/SearchResultCard';
+import { useFetchDataStore } from '../../store/data';
+import SearchResultCard from '../Card/SearchResultCard/SearchResultCard';
 
 const MIN_HEIGHT = 25;
 const MAX_HEIGHT = 80;
