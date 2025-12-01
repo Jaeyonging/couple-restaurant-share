@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { NaverMap } from '../../component/NaverMap';
 import ApiErrorBoundary from '../../boundary/ApiErrorBoundary';
 import { SearchFetcher } from '../../api/fetchHooks';
-import HomeContainer from '../../component/Home/HomeContainer';
 import SearchInput from '../../component/SearchInput';
 import ResultsContainer from '../../component/ResultsContainer';
 

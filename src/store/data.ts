@@ -18,13 +18,8 @@ const useFetchDataStore = create<FetchDataState>((set) => ({
 
 
 interface MarkerData{
-    address: string;
-    category: string;
-    link: string;
     mapx: number;
     mapy: number;
-    roadAddress: string;
-    title: string;
 }
 
 interface MarkerState {
