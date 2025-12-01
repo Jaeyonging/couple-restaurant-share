@@ -49,7 +49,7 @@ const ResultsContainer = () => {
 
     return (
         <div
-            className={`w-full absolute bottom-0 z-50 bg-white shadow-lg border-t border-gray-200 ${isVisible ? 'block' : 'hidden'}`}
+            className={`w-full absolute bottom-[50px] z-50 bg-white border-t border-gray-200 ${isVisible ? 'block' : 'hidden'}`}
             style={{ height: `${sheetHeight}vh` }}
         >
             <div className='flex flex-col h-full'>
