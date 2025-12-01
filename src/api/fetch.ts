@@ -13,8 +13,8 @@ const fetchNaverSearch = async (keyword: string) => {
     return response.data;
 };
 
-const fetchNaverImage = async (keyword: string) => {
-    const response = await axios.get(`/api/v1/search/image.json?query=${keyword}+대표 음식점 사진&display=10&sort=sim`, {
+const fetchNaverImage = async (keyword: string, address:string) => {
+    const response = await axios.get(`/api/v1/search/image.json?query=${keyword}+${address}&display=10&sort=sim`, {
         headers: {
             'X-Naver-Client-Id': NAVER_CLIENT_KEY,
             'X-Naver-Client-Secret': NAVER_CLIENT_SECRET,
@@ -32,7 +32,8 @@ export const fetchNaverSearchWithImage = async (keyword: string) => {
     const itemsWithImage = await Promise.all(
         items.map(async (item: any) => {
             const cleanTitle = item.title.replace(/<[^>]*>/g, "");
-            const imgRes = await fetchNaverImage(cleanTitle);
+            const address = item.roadAddress.split(" ")[0];
+            const imgRes = await fetchNaverImage(cleanTitle, address);
 
             return {
                 ...item,

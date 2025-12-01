@@ -21,7 +21,7 @@ export const NaverMap = ({ longtitude, latitude }: Props) => {
         const location = new naver.maps.LatLng(longtitude, latitude)
         const mapOptions = {
             center: location,
-            zoom: 10,
+            zoom: 15,
             zoomControl: true,
         };
 
@@ -51,14 +51,15 @@ export const NaverMap = ({ longtitude, latitude }: Props) => {
         });
     }, [marker, naver]);
 
-    // currentMarker가 변경되면 지도 중심 이동
     useEffect(() => {
         if (!mapRef.current || !naver || !currentMarker) return;
 
         const lat = currentMarker.mapy / 10000000;
         const lng = currentMarker.mapx / 10000000;
+
+        const offsetLat = lat - 0.0012;
         
-        const newPosition = new naver.maps.LatLng(lat, lng);
+        const newPosition = new naver.maps.LatLng(offsetLat, lng);
         mapRef.current.setCenter(newPosition);
         mapRef.current.setZoom(17);
     }, [currentMarker, naver]);
