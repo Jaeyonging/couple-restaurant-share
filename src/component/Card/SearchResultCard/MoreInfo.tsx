@@ -7,7 +7,7 @@ interface Props {
 
 const MoreInfo = ({ link }: Props) => {
     return (
-        <div className='flex justify-end text-sm'>
+        <div className='flex justify-start text-sm'>
             {link && (
                 <a
                     href={link}
