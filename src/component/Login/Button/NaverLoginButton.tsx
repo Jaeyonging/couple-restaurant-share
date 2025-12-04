@@ -1,13 +1,14 @@
 import React from "react";
 import { SiNaver } from "react-icons/si";
-import { useLoginStore } from "../../store/data";
 
 const NaverLoginButton = () => {
-    const { setIsLogin } = useLoginStore();
-    
+    const NAVER_CLIENT_KEY = import.meta.env.VITE_NAVER_CLIENT;
+    const NAVER_CLIENT_SECRET = import.meta.env.VITE_NAVER_SECRET;
+    const REDIRECT_URL = import.meta.env.PROD
+        ? `${import.meta.env.VITE_API_URL}/login/auth`
+        : "http://localhost:5173/login/auth";
     const handleNaverLogin = () => {
-        console.log("네이버 로그인");
-        setIsLogin(true);
+        window.location.href = `https://nid.naver.com/oauth2.0/authorize?client_id=${NAVER_CLIENT_KEY}&redirect_uri=${REDIRECT_URL}&response_type=code`;
     };
 
     return (

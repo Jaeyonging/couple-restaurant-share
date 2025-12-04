@@ -1,13 +1,9 @@
 import React from "react";
 import { FcGoogle } from "react-icons/fc";
-import { useLoginStore } from "../../store/data";
 
 const GoogleLoginButton = () => {
-    const { setIsLogin } = useLoginStore();
-
     const handleGoogleLogin = () => {
         console.log("구글 로그인");
-        setIsLogin(true);
     };
 
     return (

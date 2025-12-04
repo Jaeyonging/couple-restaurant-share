@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import ProfileCard from '../../component/Card/ProfileCard/ProfileCard'
 import RecommendCard from '../../component/Card/RecommendCard/RecommendCard'
-import KakaoLoginButton from '../../component/Login/KakaoLoginButton'
-import NaverLoginButton from '../../component/Login/NaverLoginButton'
-import GoogleLoginButton from '../../component/Login/GoogleLoginButton'
 import { useIsLogin } from '../../hooks/isLogin'
+import { PostKakaoLogin } from '../../api/Login/fetch'
+import KakaoLoginButton from '../../component/Login/Button/KakaoLoginButton'
+import NaverLoginButton from '../../component/Login/Button/NaverLoginButton'
+import GoogleLoginButton from '../../component/Login/Button/GoogleLoginButton'
+import EmailLoginButton from '../../component/Login/Button/EmailLoginButton'
 
 const Home = () => {
   const isLogin = useIsLogin()
@@ -25,6 +27,7 @@ const Home = () => {
             <KakaoLoginButton/>
             <NaverLoginButton/>
             <GoogleLoginButton/>
+            <EmailLoginButton/>
           </div>
         </div>
       )}

@@ -1,13 +1,14 @@
 import React from "react";
 import { RiKakaoTalkFill } from "react-icons/ri"; // 카카오 아이콘
-import { useLoginStore } from "../../store/data";
 
 const KakaoLoginButton = () => {
-  const { setIsLogin } = useLoginStore();
-  
+  const KAKAO_APP_KEY = import.meta.env.VITE_KAKAO_RESTAPI;
+  const REDIRECT_URL = import.meta.env.PROD
+    ? `${import.meta.env.VITE_API_URL}/login/auth`
+    : "http://localhost:5173/login/auth";
+
   const handleKakaoLogin = () => {
-    console.log("카카오 로그인");
-    setIsLogin(true);
+    window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_APP_KEY}&redirect_uri=${REDIRECT_URL}&response_type=code`
   };
 
   return (

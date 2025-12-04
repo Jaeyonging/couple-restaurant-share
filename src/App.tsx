@@ -7,6 +7,7 @@ import Map from "./routes/map/Map";
 import NavBar from "./component/NavBar/NavBar";
 import Review from "./routes/review/Review";
 import Home from "./routes/home/Home";
+import Auth from "./component/Login/Auth";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Suspense fallback={<div>로딩중...</div>}>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/login/auth" element={<Auth />} />
               <Route path="/map" element={<Map />} />
               <Route path="/review" element={<Review />} />
             </Routes>
