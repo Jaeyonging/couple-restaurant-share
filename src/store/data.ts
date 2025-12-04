@@ -16,7 +16,6 @@ const useFetchDataStore = create<FetchDataState>((set) => ({
     resetData: () => set({ data: null, imageData: null }),
 }));
 
-
 interface MarkerData{
     mapx: number;
     mapy: number;
@@ -46,4 +45,24 @@ const useCurrentMarkerStore = create<CurrentMarkerState>((set) => ({
     resetCurrentMarker: () => set({ currentMarker: null }),
 }));
 
-export { useFetchDataStore, useMarkerStore, useCurrentMarkerStore};
+interface MapState {
+    search: string;
+    longtitude: number;
+    latitude: number;
+    setSearch: (search: string) => void;
+    setLongtitude: (longtitude: number) => void;
+    setLatitude: (latitude: number) => void;
+    setMapCenter: (longtitude: number, latitude: number) => void;
+}
+
+const useMapStore = create<MapState>((set) => ({
+    search: '',
+    longtitude: 37.5530049,
+    latitude: 127.0180,
+    setSearch: (search) => set({ search }),
+    setLongtitude: (longtitude) => set({ longtitude }),
+    setLatitude: (latitude) => set({ latitude }),
+    setMapCenter: (longtitude, latitude) => set({ longtitude, latitude }),
+}));
+
+export { useFetchDataStore, useMarkerStore, useCurrentMarkerStore, useMapStore};

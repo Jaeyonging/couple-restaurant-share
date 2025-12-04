@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 interface Props {
     search: string
     setSearch: (search: string) => void
@@ -6,6 +6,11 @@ interface Props {
 
 const SearchInput = ({ search, setSearch }: Props) => {
     const [input, setInput] = useState(search);
+    
+    useEffect(() => {
+        setInput(search);
+    }, [search]);
+
     const handleSearch = () => {
         setSearch(input);
     };

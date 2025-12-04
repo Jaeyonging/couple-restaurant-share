@@ -1,12 +1,12 @@
 import { Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
-import { Home } from "./routes/home/Home";
 import "./App.css";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "./boundary/ErrorFallback";
 import Map from "./routes/map/Map";
 import NavBar from "./component/NavBar/NavBar";
 import Review from "./routes/review/Review";
+import Home from "./routes/home/Home";
 
 function App() {
   return (
