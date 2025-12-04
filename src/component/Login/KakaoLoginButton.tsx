@@ -1,9 +1,13 @@
 import React from "react";
 import { RiKakaoTalkFill } from "react-icons/ri"; // 카카오 아이콘
+import { useLoginStore } from "../../store/data";
 
 const KakaoLoginButton = () => {
+  const { setIsLogin } = useLoginStore();
+  
   const handleKakaoLogin = () => {
     console.log("카카오 로그인");
+    setIsLogin(true);
   };
 
   return (

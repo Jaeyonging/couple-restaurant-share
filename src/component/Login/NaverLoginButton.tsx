@@ -1,9 +1,13 @@
 import React from "react";
 import { SiNaver } from "react-icons/si";
+import { useLoginStore } from "../../store/data";
 
 const NaverLoginButton = () => {
+    const { setIsLogin } = useLoginStore();
+    
     const handleNaverLogin = () => {
         console.log("네이버 로그인");
+        setIsLogin(true);
     };
 
     return (

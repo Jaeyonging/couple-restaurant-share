@@ -65,4 +65,14 @@ const useMapStore = create<MapState>((set) => ({
     setMapCenter: (longtitude, latitude) => set({ longtitude, latitude }),
 }));
 
-export { useFetchDataStore, useMarkerStore, useCurrentMarkerStore, useMapStore};
+interface LoginState {
+    isLogin: boolean;
+    setIsLogin: (isLogin: boolean) => void;
+}
+
+const useLoginStore = create<LoginState>((set) => ({
+    isLogin: false,
+    setIsLogin: (isLogin) => set({ isLogin }),
+}));
+
+export { useFetchDataStore, useMarkerStore, useCurrentMarkerStore, useMapStore, useLoginStore};
