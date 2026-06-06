@@ -14,6 +14,12 @@ export const RenderImg = ({ imgurl, onClick, className = "learned-img", alt }: P
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        if (!imgurl) {
+            setImageSrc('/noimg.jpeg');
+            setIsLoading(false);
+            return;
+        }
+        setIsLoading(true);
         const image = new Image();
         image.src = imgurl;
         image.onload = () => {
@@ -21,10 +27,11 @@ export const RenderImg = ({ imgurl, onClick, className = "learned-img", alt }: P
             setIsLoading(false);
         };
         image.onerror = () => {
-            setImageSrc('../noimg.jpeg');
+            setImageSrc('/noimg.jpeg');
             setIsLoading(false);
         };
-    }, [])
+    }, [imgurl]);
+
     return (
         <>
             {isLoading ? (
