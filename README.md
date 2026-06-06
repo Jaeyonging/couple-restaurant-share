@@ -22,7 +22,7 @@
 ## 프로젝트 개요
 
 **개발 인원**: 1명 (풀스택)  
-**배포**: https://couple.jaeyonging.com
+**배포**: https://couple.jaeyonging.com (Apache, PM2)
 
 초대코드로 파트너와 연결하면 맛집 리스트가 자동으로 공유됩니다. 네이버 지도 API로 식당을 검색해 즐겨찾기에 추가하고, 서로 별점과 댓글을 남길 수 있습니다. 여기에 방문 사진, 데이트 일정, 매일 하나씩 주고받는 오늘의 질문 기능이 더해져 있습니다.
 
@@ -96,7 +96,7 @@ Naver Map SDK, Naver Local Search API, Naver Image Search API
 
 ### HTTP 메서드 제약
 
-배포 환경의 Nginx가 DELETE 메서드를 차단(405 에러)합니다. 삭제/끊기 작업을 모두 POST로 구현했습니다.
+배포 환경의 Apache가 DELETE 메서드를 차단(405 에러)합니다. 삭제/끊기 작업을 모두 POST로 구현했습니다.
 
 ### 좌표 변수명 레거시
 
