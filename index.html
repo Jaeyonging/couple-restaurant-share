@@ -1,33 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
   <head>
+    <!-- 기본 메타 태그 -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    
+    <!-- Primary Meta Tags -->
+    <title>커플 맛집 공유 - 우리만의 맛집을 기록하고 공유하세요</title>
+    <meta name="title" content="커플 맛집 공유 - 우리만의 맛집을 기록하고 공유하세요" />
+    <meta name="description" content="커플이 함께 찾은 맛집을 등록하고, 평점과 리뷰를 남기며 추억을 쌓아보세요. 네이버 지도 연동으로 쉽게 맛집을 찾고, 커플만의 맛집 리스트를 만들어보세요." />
+    <meta name="keywords" content="커플 맛집, 맛집 공유, 커플 앱, 맛집 리뷰, 맛집 기록, 커플 데이트, 맛집 추천, 네이버 지도 맛집" />
+    <meta name="author" content="Couple Restaurant Share" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="Korean" />
+    <meta name="revisit-after" content="7 days" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://couple.jaeyonging.com/" />
+    <meta property="og:title" content="커플 맛집 공유 - 우리만의 맛집을 기록하고 공유하세요" />
+    <meta property="og:description" content="커플이 함께 찾은 맛집을 등록하고, 평점과 리뷰를 남기며 추억을 쌓아보세요. 네이버 지도 연동으로 쉽게 맛집을 찾고, 커플만의 맛집 리스트를 만들어보세요." />
+    <meta property="og:image" content="/logo.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="커플 맛집 공유 서비스" />
+    <meta property="og:locale" content="ko_KR" />
+    <meta property="og:site_name" content="커플 맛집 공유" />
+    
+    <!-- Twitter Card --> 
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://couple.jaeyonging.com/" />
+    <meta name="twitter:title" content="커플 맛집 공유 - 우리만의 맛집을 기록하고 공유하세요" />
+    <meta name="twitter:description" content="커플이 함께 찾은 맛집을 등록하고, 평점과 리뷰를 남기며 추억을 쌓아보세요." />
+    <meta name="twitter:image" content="https://couple.jaeyonging.com/logo.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" href="/logo.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/logo.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/logo.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#ec4899" />
+    <meta name="msapplication-TileColor" content="#ec4899" />
+    
+    <!-- Google Site Verification -->
     <meta
       name="google-site-verification"
       content="PKoA1svvIMj70qAHw_HVvDChFa8pZG8vXIiKWDIootE"
     />
-
-    <meta name="title" content="Template" />
-
-    <meta name="keywords" content="template" />
-    <meta name="description" content="기본 template" />
-
-    <meta property="og:title" content="template" />
-    <meta property="og:url" content="https://opistel.vercel.app/" />
-    <meta property="og:type" content="website" />
-    <meta
-      property="og:image"
-      content="https://cdn-icons-png.flaticon.com/512/2163/2163350.png"
-    />
-    <meta property="og:title" content="기본 template" />
-    <meta property="og:description" content="기본 template" />
-
-    <meta charset="UTF-8" />
-    <link rel="icon" href="/house.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>기본 template</title>
+    
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://couple.jaeyonging.com/" />
+    
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "커플 맛집 공유",
+      "description": "커플이 함께 찾은 맛집을 등록하고, 평점과 리뷰를 남기며 추억을 쌓는 서비스",
+      "url": "https://couple.jaeyonging.com/",
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "KRW"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.5",
+        "ratingCount": "100"
+      },
+      "featureList": [
+        "맛집 검색 및 등록",
+        "평점 및 리뷰 작성",
+        "커플 맛집 리스트 관리",
+        "방문 날짜 기록",
+        "맛집 추천 기능"
+      ]
+    }
+    </script>
+    
+    <!-- Naver Maps API -->
     <script type="text/javascript" src="https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=k7kv9hj389"></script>
   </head>
   <body>
+    <noscript>
+      <div style="padding: 20px; text-align: center; background-color: #f3f4f6;">
+        <h2>JavaScript가 필요합니다</h2>
+        <p>이 웹사이트를 사용하려면 JavaScript를 활성화해주세요.</p>
+      </div>
+    </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

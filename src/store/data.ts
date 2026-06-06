@@ -52,7 +52,6 @@ interface MapState {
     setSearch: (search: string) => void;
     setLongtitude: (longtitude: number) => void;
     setLatitude: (latitude: number) => void;
-    setMapCenter: (longtitude: number, latitude: number) => void;
 }
 
 const useMapStore = create<MapState>((set) => ({
@@ -62,7 +61,6 @@ const useMapStore = create<MapState>((set) => ({
     setSearch: (search) => set({ search }),
     setLongtitude: (longtitude) => set({ longtitude }),
     setLatitude: (latitude) => set({ latitude }),
-    setMapCenter: (longtitude, latitude) => set({ longtitude, latitude }),
 }));
 
 interface LoginState {
@@ -70,9 +68,44 @@ interface LoginState {
     setIsLogin: (isLogin: boolean) => void;
 }
 
+const initIsLogin = (): boolean => {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return false;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return !!(payload.exp && payload.exp * 1000 > Date.now());
+    } catch {
+        return false;
+    }
+};
+
 const useLoginStore = create<LoginState>((set) => ({
-    isLogin: false,
+    isLogin: initIsLogin(),
     setIsLogin: (isLogin) => set({ isLogin }),
 }));
 
-export { useFetchDataStore, useMarkerStore, useCurrentMarkerStore, useMapStore, useLoginStore};
+interface Toast {
+    id: string;
+    type: 'success' | 'error' | 'info';
+    message: string;
+}
+
+interface ToastState {
+    toasts: Toast[];
+    addToast: (type: Toast['type'], message: string) => void;
+    removeToast: (id: string) => void;
+}
+
+const useToastStore = create<ToastState>((set) => ({
+    toasts: [],
+    addToast: (type, message) => {
+        const id = Math.random().toString(36).slice(2);
+        set((state) => ({ toasts: [...state.toasts, { id, type, message }] }));
+        setTimeout(() => {
+            set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
+        }, 3000);
+    },
+    removeToast: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+}));
+
+export { useFetchDataStore, useMarkerStore, useCurrentMarkerStore, useMapStore, useLoginStore, useToastStore };

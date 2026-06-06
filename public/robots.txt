@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /login/
+
+Sitemap: https://couple.jaeyonging.com/sitemap.xml
