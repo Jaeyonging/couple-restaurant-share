@@ -139,7 +139,7 @@ const SearchResultCard = ({ data }: Props) => {
                 {/* Content */}
                 <div className='flex-1 min-w-0'>
                     <div className='flex items-start justify-between gap-2 mb-1'>
-                        <h3 className='font-semibold text-gray-900 text-sm truncate'>
+                        <h3 className='font-bold text-gray-900 text-[15px] truncate'>
                             {cleanTitle}
                         </h3>
                         <button
@@ -159,14 +159,14 @@ const SearchResultCard = ({ data }: Props) => {
                         </button>
                     </div>
 
-                    <p className='text-xs text-gray-500 truncate mb-1.5 flex items-center gap-1'>
+                    <p className='text-[13px] text-gray-600 truncate mb-2 flex items-center gap-1'>
                         <FiMapPin className='text-primary-400 flex-shrink-0' />
                         {roadAddress || address}
                     </p>
 
                     <div className='flex items-center justify-between'>
                         {category && (
-                            <span className='text-[10px] text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded'>
+                            <span className='text-[11px] text-primary-600 bg-primary-50 px-2 py-0.5 rounded-md'>
                                 {category}
                             </span>
                         )}

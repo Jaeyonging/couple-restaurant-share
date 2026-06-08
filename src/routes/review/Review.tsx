@@ -124,13 +124,13 @@ const PlaceCard = ({
         <div className='flex items-start justify-between gap-2 mb-1'>
           <h3 className='font-bold text-gray-900 text-base leading-tight truncate'>{place.name}</h3>
           {category && (
-            <span className='flex-shrink-0 text-[10px] text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full font-medium'>
+            <span className='flex-shrink-0 text-[11px] text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full font-medium'>
               {category}
             </span>
           )}
         </div>
 
-        <p className='text-xs text-gray-400 truncate flex items-center gap-1 mb-3'>
+        <p className='text-[13px] text-gray-500 truncate flex items-center gap-1 mb-3'>
           <FiMapPin className='flex-shrink-0' />
           {place.roadAddress || place.address}
         </p>
