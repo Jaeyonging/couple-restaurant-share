@@ -4,6 +4,7 @@ import { FiChevronLeft, FiChevronRight, FiChevronDown, FiPlus, FiX, FiTrash2, Fi
 import { useIsLogin } from '../../hooks/isLogin'
 import { getSchedules, addSchedule, deleteSchedule, getFavPlaces } from '../../api/fetch'
 import { useToastStore } from '../../store/data'
+import DatePicker from '../../component/DatePicker'
 
 interface Schedule {
   id: number
@@ -412,13 +413,7 @@ const Calendar = () => {
                   required
                   className='w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:ring-2 focus:ring-primary-500 text-sm'
                 />
-                <input
-                  type='date'
-                  value={newDate}
-                  onChange={e => setNewDate(e.target.value)}
-                  required
-                  className='w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:ring-2 focus:ring-primary-500 text-sm'
-                />
+                <DatePicker value={newDate} onChange={setNewDate} placeholder='날짜 선택' />
                 <input
                   type='text'
                   value={newPlaceName}
