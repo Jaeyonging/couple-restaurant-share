@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { emailLogin, emailRegister } from '../../../api/fetch'
 import { useLoginStore } from '../../../store/data'
+import ForgotPasswordModal from '../ForgotPasswordModal'
 
 const EmailLoginButton = () => {
   const [showModal, setShowModal] = useState(false)
+  const [showForgot, setShowForgot] = useState(false)
   const [isLoginMode, setIsLoginMode] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -135,19 +137,31 @@ const EmailLoginButton = () => {
               </button>
             </form>
 
-            <div className='mt-4 text-center'>
+            <div className='mt-4 text-center space-y-2'>
               <button
                 onClick={() => {
                   setIsLoginMode(!isLoginMode)
                   setError('')
                 }}
-                className='text-sm text-indigo-600 hover:text-indigo-700'
+                className='block w-full text-sm text-indigo-600 hover:text-indigo-700'
               >
                 {isLoginMode ? '계정이 없으신가요? 회원가입' : '이미 계정이 있으신가요? 로그인'}
               </button>
+              {isLoginMode && (
+                <button
+                  onClick={() => setShowForgot(true)}
+                  className='block w-full text-sm text-gray-400 hover:text-gray-600'
+                >
+                  비밀번호를 잊으셨나요?
+                </button>
+              )}
             </div>
           </div>
         </div>
+      )}
+
+      {showForgot && (
+        <ForgotPasswordModal initialEmail={email} onClose={() => setShowForgot(false)} />
       )}
     </>
   )
