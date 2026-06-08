@@ -1,21 +1,15 @@
 import React from "react";
 import { RiKakaoTalkFill } from "react-icons/ri"; // 카카오 아이콘
+import { startKakaoOAuth } from "../oauth";
 
 const KakaoLoginButton = () => {
-  const KAKAO_APP_KEY = import.meta.env.VITE_KAKAO_RESTAPI;
-  const REDIRECT_URL = import.meta.env.PROD
-    ? `${import.meta.env.VITE_API_URL}/login/auth`
-    : "http://localhost:5173/login/auth";
-
-  const handleKakaoLogin = () => {
-    window.location.href = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_APP_KEY}&redirect_uri=${REDIRECT_URL}&response_type=code`
-  };
+  const handleKakaoLogin = () => startKakaoOAuth('login');
 
   return (
     <div
       onClick={handleKakaoLogin}
       className="
-        flex w-[80%] h-[50px]
+        flex w-full h-[50px]
         bg-[#FEE500]
         rounded-lg
         items-center justify-center
