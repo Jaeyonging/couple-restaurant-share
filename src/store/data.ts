@@ -19,6 +19,7 @@ const useFetchDataStore = create<FetchDataState>((set) => ({
 interface MarkerData{
     mapx: number;
     mapy: number;
+    name?: string;
 }
 
 interface MarkerState {
@@ -49,18 +50,25 @@ interface MapState {
     search: string;
     longtitude: number;
     latitude: number;
+    // 내 위치 (GPS) — WGS84 십진수. null = 미사용
+    myLat: number | null;
+    myLng: number | null;
     setSearch: (search: string) => void;
     setLongtitude: (longtitude: number) => void;
     setLatitude: (latitude: number) => void;
+    setMyLocation: (lat: number | null, lng: number | null) => void;
 }
 
 const useMapStore = create<MapState>((set) => ({
     search: '',
     longtitude: 37.5530049,
     latitude: 127.0180,
+    myLat: null,
+    myLng: null,
     setSearch: (search) => set({ search }),
     setLongtitude: (longtitude) => set({ longtitude }),
     setLatitude: (latitude) => set({ latitude }),
+    setMyLocation: (lat, lng) => set({ myLat: lat, myLng: lng }),
 }));
 
 interface LoginState {
