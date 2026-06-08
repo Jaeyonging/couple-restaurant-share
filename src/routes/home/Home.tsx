@@ -4,11 +4,17 @@ import ProfileCard from '../../component/Card/ProfileCard/ProfileCard'
 import RecommendCard from '../../component/Card/RecommendCard/RecommendCard'
 import { useIsLogin } from '../../hooks/isLogin'
 import EmailLoginButton from '../../component/Login/Button/EmailLoginButton'
-import { getCoupleInfo, createCouple, joinCouple, updateMeetDay, getFavPlaces, disconnectCouple, deleteAccount, getActivities, markActivitiesRead, getDailyQuestion, answerDailyQuestion, getSchedules } from '../../api/fetch'
+import KakaoLoginButton from '../../component/Login/Button/KakaoLoginButton'
+import NaverLoginButton from '../../component/Login/Button/NaverLoginButton'
+import { getCoupleInfo, createCouple, joinCouple, updateMeetDay, getFavPlaces, disconnectCouple, deleteAccount, getActivities, markActivitiesRead, getDailyQuestion, answerDailyQuestion, getSchedules, getSocialAccounts, disconnectSocial, resolveLinkConflict, getQuestionHistory } from '../../api/fetch'
+import { startKakaoOAuth, startNaverOAuth } from '../../component/Login/oauth'
+import { RiKakaoTalkFill } from 'react-icons/ri'
+import { SiNaver } from 'react-icons/si'
 import { useLoginStore, useToastStore } from '../../store/data'
 import { FiLogOut, FiCalendar, FiCopy, FiHeart, FiRefreshCw, FiX, FiUserPlus, FiLink, FiShare2, FiTrash2, FiSettings, FiMapPin, FiBell, FiSend, FiStar, FiCheck, FiMessageSquare, FiAlertCircle, FiEdit3 } from 'react-icons/fi'
 import { AiFillStar } from 'react-icons/ai'
 import { RenderImg } from '../../component/RenderImg'
+import DatePicker from '../../component/DatePicker'
 import { API_URL } from '../../types/types'
 
 const Home = () => {
@@ -23,6 +29,8 @@ const Home = () => {
   const [showDisconnectModal, setShowDisconnectModal] = useState(false)
   const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
+  const [socialAccounts, setSocialAccounts] = useState<{ kakao: boolean; naver: boolean; primaryType: number } | null>(null)
+  const [linkConflict, setLinkConflict] = useState<{ linkToken: string; label: string; conflictNickname: string; conflictHasCouple: boolean; conflictType: string } | null>(null)
   const [inviteCode, setInviteCode] = useState('')
   const [meetDay, setMeetDay] = useState('')
   const [loading, setLoading] = useState(false)
@@ -34,6 +42,9 @@ const Home = () => {
   const [showInboxModal, setShowInboxModal] = useState(false)
   const [nextSchedule, setNextSchedule] = useState<any>(null)
   const [dailyQuestion, setDailyQuestion] = useState<any>(null)
+  const [showQuestionHistory, setShowQuestionHistory] = useState(false)
+  const [questionHistory, setQuestionHistory] = useState<{ question_id: number; question: string; assigned_date: string; my_answer: string | null; partner_answer: string | null }[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
   const [answerInput, setAnswerInput] = useState('')
   const [answerLoading, setAnswerLoading] = useState(false)
   const [initializing, setInitializing] = useState(true)
@@ -45,10 +56,61 @@ const Home = () => {
       loadActivities()
       loadDailyQuestion()
       loadNextSchedule()
+      loadSocialAccounts()
+      // 소셜 연동 콜백 결과 토스트
+      const lt = sessionStorage.getItem('link_toast')
+      if (lt) {
+        sessionStorage.removeItem('link_toast')
+        try { const { type, msg } = JSON.parse(lt); addToast(type, msg) } catch {}
+      }
+      // 소셜 연동 충돌 → 확인 모달
+      const lc = sessionStorage.getItem('link_conflict')
+      if (lc) {
+        sessionStorage.removeItem('link_conflict')
+        try { setLinkConflict(JSON.parse(lc)) } catch {}
+      }
     } else {
       setInitializing(false)
     }
   }, [isLogin])
+
+  const openQuestionHistory = async () => {
+    setShowQuestionHistory(true)
+    setHistoryLoading(true)
+    try {
+      const res = await getQuestionHistory()
+      setQuestionHistory(res.history || [])
+    } catch {
+      setQuestionHistory([])
+    } finally { setHistoryLoading(false) }
+  }
+
+  const loadSocialAccounts = async () => {
+    try { setSocialAccounts(await getSocialAccounts()) } catch { /* silent */ }
+  }
+
+  const handleDisconnectSocial = async (provider: 'kakao' | 'naver') => {
+    try {
+      await disconnectSocial(provider)
+      addToast('success', `${provider === 'naver' ? '네이버' : '카카오'} 연동이 해제되었습니다.`)
+      loadSocialAccounts()
+    } catch (e: any) {
+      addToast('error', e.response?.data?.error || '연동 해제에 실패했습니다.')
+    }
+  }
+
+  const handleResolveLinkConflict = async () => {
+    if (!linkConflict) return
+    try {
+      const res = await resolveLinkConflict(linkConflict.linkToken)
+      addToast('success', res.message || '연결되었습니다.')
+      setLinkConflict(null)
+      loadSocialAccounts()
+    } catch (e: any) {
+      addToast('error', e.response?.data?.error || '연동 처리에 실패했습니다.')
+      setLinkConflict(null)
+    }
+  }
 
   useEffect(() => {
     if (favPlaces.length > 0) {
@@ -136,8 +198,8 @@ const Home = () => {
     return new Date(dateStr).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })
   }
 
-  const activityIcon = (type: string) => {
-    const base = 'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-sm'
+  const activityIcon = (type: string, small = false) => {
+    const base = `${small ? 'w-5 h-5 text-[10px]' : 'w-7 h-7 text-sm'} rounded-full flex items-center justify-center flex-shrink-0`
     switch (type) {
       case 'add_place': return <span className={`${base} bg-primary-100 text-primary-500`}><FiMapPin /></span>
       case 'visit': return <span className={`${base} bg-green-100 text-green-500`}><FiCheck /></span>
@@ -316,8 +378,15 @@ const Home = () => {
           </div>
           <h1 className='text-2xl font-bold text-gray-900 mb-2 text-center'>커플 맛집</h1>
           <p className='text-gray-500 text-center mb-8'>둘만의 맛집 리스트를 만들어보세요</p>
-          <div className='w-full max-w-xs'>
+          <div className='w-full max-w-xs space-y-3'>
             <EmailLoginButton />
+            <div className='flex items-center gap-3 py-1'>
+              <div className='flex-1 h-px bg-gray-200' />
+              <span className='text-xs text-gray-400'>또는</span>
+              <div className='flex-1 h-px bg-gray-200' />
+            </div>
+            <KakaoLoginButton />
+            <NaverLoginButton />
           </div>
         </div>
       </div>
@@ -374,13 +443,9 @@ const Home = () => {
                 maxLength={6}
                 className='w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:ring-2 focus:ring-primary-500 text-center text-xl tracking-widest font-mono'
               />
-              <input
-                type='date'
-                value={meetDay}
-                onChange={(e) => setMeetDay(e.target.value)}
-                className='w-full mt-3 px-4 py-3 bg-gray-50 rounded-xl border-0 focus:ring-2 focus:ring-primary-500 text-gray-600'
-                placeholder='만난 날짜 (선택)'
-              />
+              <div className='mt-3'>
+                <DatePicker value={meetDay} onChange={setMeetDay} placeholder='만난 날짜 (선택)' />
+              </div>
               {error && <p className='mt-3 text-red-500 text-sm'>{error}</p>}
               <div className='flex gap-2 mt-4'>
                 <button type='button' onClick={() => { setShowInviteModal(false); setError('') }} className='flex-1 py-3 bg-gray-100 text-gray-600 font-medium rounded-xl'>취소</button>
@@ -442,18 +507,20 @@ const Home = () => {
 
       <main className='max-w-lg mx-auto px-4 py-6 space-y-6'>
         {/* Days Together Card */}
-        <section className='bg-white rounded-xl px-4 py-3 shadow-soft'>
+        <section className='bg-white rounded-2xl px-4 py-4 shadow-soft'>
           {coupleInfo?.meetDay ? (
             <div className='flex items-center justify-center relative'>
-              <div className='flex items-center gap-2'>
-                <p className='text-xs text-gray-400'>함께한 지</p>
-                <p className='text-base font-bold text-gray-900'>{daysTogether}<span className='text-xs font-normal text-gray-400 ml-0.5'>일</span></p>
+              <div className='flex items-center gap-2 leading-none'>
+                <FiHeart className='text-primary-400 text-xl shrink-0' />
+                <span className='text-sm text-gray-500'>함께한 지</span>
+                <span className='text-2xl font-extrabold text-primary-500'>{daysTogether}</span>
+                <span className='text-base font-bold text-gray-700'>일</span>
               </div>
               <button
                 onClick={() => { setMeetDay(coupleInfo.meetDay || ''); setShowMeetDayModal(true) }}
                 className='absolute right-0 p-1.5 text-gray-300 hover:text-primary-500 transition-colors'
               >
-                <FiCalendar className='text-base' />
+                <FiCalendar className='text-lg' />
               </button>
             </div>
           ) : (
@@ -514,9 +581,12 @@ const Home = () => {
             <div className='px-4 pt-4 pb-4 border-b border-gray-100'>
               <div className='flex items-center justify-between mb-2'>
                 <span className='text-xs font-semibold text-primary-500 uppercase tracking-wide'>오늘의 질문</span>
-                {dailyQuestion.is_complete && (
-                  <span className='text-[11px] text-green-500 font-semibold'>둘 다 완료</span>
-                )}
+                <div className='flex items-center gap-2'>
+                  {dailyQuestion.is_complete && (
+                    <span className='text-[11px] text-green-500 font-semibold'>둘 다 완료</span>
+                  )}
+                  <button onClick={openQuestionHistory} className='text-[11px] text-gray-400 font-medium hover:text-primary-500 transition-colors'>지난 질문</button>
+                </div>
               </div>
               <p className='text-sm text-gray-800 leading-relaxed font-medium'>{dailyQuestion.question}</p>
             </div>
@@ -635,8 +705,8 @@ const Home = () => {
                         <RenderImg imgurl={thumbnail} alt={place.name} className='w-full h-full object-cover' />
                       </div>
                       <div className='flex-1 min-w-0'>
-                        <p className='font-semibold text-gray-900 truncate text-sm'>{place.name}</p>
-                        <p className='text-xs text-gray-400 truncate mt-0.5'>{place.categories?.split(',')[0]?.trim()}</p>
+                        <p className='font-bold text-gray-900 truncate text-[15px]'>{place.name}</p>
+                        <p className='text-[13px] text-gray-500 truncate mt-0.5'>{place.categories?.split(',')[0]?.trim()}</p>
                       </div>
                       <span className='text-[11px] bg-primary-50 text-primary-500 font-medium px-2 py-1 rounded-full flex-shrink-0'>파트너 추가</span>
                     </div>
@@ -723,12 +793,7 @@ const Home = () => {
         <div className='p-6'>
           <h2 className='text-lg font-bold text-gray-900 mb-4'>만난 날짜</h2>
           <form onSubmit={handleUpdateMeetDay}>
-            <input
-              type='date'
-              value={meetDay}
-              onChange={(e) => setMeetDay(e.target.value)}
-              className='w-full px-4 py-3 bg-gray-50 rounded-xl border-0 focus:ring-2 focus:ring-primary-500'
-            />
+            <DatePicker value={meetDay} onChange={setMeetDay} placeholder='만난 날짜 선택' />
             {error && <p className='mt-3 text-red-500 text-sm'>{error}</p>}
             <div className='flex gap-2 mt-4'>
               <button type='button' onClick={() => { setShowMeetDayModal(false); setError('') }} className='flex-1 py-3 bg-gray-100 text-gray-600 font-medium rounded-xl'>취소</button>
@@ -783,35 +848,40 @@ const Home = () => {
             </button>
           </div>
           {activities.length === 0 ? (
-            <div className='text-center py-8'>
-              <div className='w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-2'>
-                <FiBell className='text-gray-300 text-xl' />
+            <div className='text-center py-12'>
+              <div className='w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3'>
+                <FiBell className='text-gray-300 text-2xl' />
               </div>
               <p className='text-sm text-gray-400'>아직 받은 알림이 없어요</p>
             </div>
           ) : (
-            <div className='space-y-1 max-h-72 overflow-y-auto'>
+            <div className='space-y-2 max-h-[65vh] overflow-y-auto -mx-1 px-1'>
               {activities.map((a) => {
                 const imgSrc = a.from_imgUrl
                   ? (a.from_imgUrl.startsWith('http') ? a.from_imgUrl : `${API_URL}${a.from_imgUrl}`)
                   : '/noimg.jpeg'
                 return (
-                  <div key={a.id} className={`flex items-start gap-3 p-3 rounded-xl ${!a.is_read ? 'bg-primary-50' : ''}`}>
-                    <img
-                      src={imgSrc}
-                      alt={a.from_nickname}
-                      className='w-9 h-9 rounded-full object-cover bg-gray-100 flex-shrink-0'
-                      onError={(e) => { (e.target as HTMLImageElement).src = '/noimg.jpeg' }}
-                    />
-                    <div className='flex-1 min-w-0'>
-                      <p className='text-sm text-gray-800 leading-snug'>
-                        <span className='font-semibold'>{a.from_nickname}</span>님이{' '}
-                        <span>{a.content}</span>
-                      </p>
-                      <p className='text-[11px] text-gray-400 mt-0.5'>{timeAgo(a.created_at)}</p>
+                  <div key={a.id} className={`flex items-center gap-3 p-3 rounded-2xl border ${!a.is_read ? 'bg-primary-50/70 border-primary-100' : 'bg-white border-gray-100'}`}>
+                    {/* 아바타 + 활동 아이콘 배지 */}
+                    <div className='relative flex-shrink-0'>
+                      <img
+                        src={imgSrc}
+                        alt={a.from_nickname}
+                        className='w-11 h-11 rounded-full object-cover bg-gray-100'
+                        onError={(e) => { (e.target as HTMLImageElement).src = '/noimg.jpeg' }}
+                      />
+                      <span className='absolute -bottom-1 -right-1 ring-2 ring-white rounded-full'>
+                        {activityIcon(a.activity_type, true)}
+                      </span>
                     </div>
-                    {activityIcon(a.activity_type)}
-                    {!a.is_read && <span className='w-2 h-2 bg-primary-500 rounded-full flex-shrink-0 mt-1' />}
+                    <div className='flex-1 min-w-0'>
+                      <p className='text-[15px] text-gray-900 leading-snug'>
+                        <span className='font-bold'>{a.from_nickname}</span>
+                        <span className='text-gray-700'>님이 {a.content}</span>
+                      </p>
+                      <p className='text-xs text-gray-400 mt-1'>{timeAgo(a.created_at)}</p>
+                    </div>
+                    {!a.is_read && <span className='w-2.5 h-2.5 bg-primary-500 rounded-full flex-shrink-0' />}
                   </div>
                 )
               })}
@@ -824,6 +894,46 @@ const Home = () => {
       <Modal show={showSettingsModal} onClose={() => setShowSettingsModal(false)}>
         <div className='p-6'>
           <h2 className='text-lg font-bold text-gray-900 mb-5'>설정</h2>
+
+          {/* 계정 연동 */}
+          <div className='mb-5'>
+            <p className='text-xs font-semibold text-gray-400 mb-2 px-1'>계정 연동</p>
+            <div className='space-y-2'>
+              {/* 카카오 */}
+              <div className='flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50'>
+                <div className='w-9 h-9 bg-[#FEE500] rounded-xl flex items-center justify-center'>
+                  <RiKakaoTalkFill className='text-[#3C1E1E]' />
+                </div>
+                <span className='flex-1 text-sm font-medium text-gray-700'>카카오</span>
+                {socialAccounts?.kakao ? (
+                  socialAccounts.primaryType === 1 ? (
+                    <span className='text-xs text-gray-400 font-medium px-2'>가입 수단</span>
+                  ) : (
+                    <button onClick={() => handleDisconnectSocial('kakao')} className='text-xs font-semibold text-gray-400 hover:text-red-500 px-2 py-1'>연동 해제</button>
+                  )
+                ) : (
+                  <button onClick={() => startKakaoOAuth('link')} className='text-xs font-semibold text-primary-500 bg-primary-50 px-3 py-1.5 rounded-lg hover:bg-primary-100'>연결</button>
+                )}
+              </div>
+              {/* 네이버 */}
+              <div className='flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50'>
+                <div className='w-9 h-9 bg-[#03C75A] rounded-xl flex items-center justify-center'>
+                  <SiNaver className='text-white text-sm' />
+                </div>
+                <span className='flex-1 text-sm font-medium text-gray-700'>네이버</span>
+                {socialAccounts?.naver ? (
+                  socialAccounts.primaryType === 2 ? (
+                    <span className='text-xs text-gray-400 font-medium px-2'>가입 수단</span>
+                  ) : (
+                    <button onClick={() => handleDisconnectSocial('naver')} className='text-xs font-semibold text-gray-400 hover:text-red-500 px-2 py-1'>연동 해제</button>
+                  )
+                ) : (
+                  <button onClick={() => startNaverOAuth('link')} className='text-xs font-semibold text-primary-500 bg-primary-50 px-3 py-1.5 rounded-lg hover:bg-primary-100'>연결</button>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className='space-y-2'>
             <button
               onClick={() => { setShowSettingsModal(false); setShowLogoutModal(true) }}
@@ -843,6 +953,65 @@ const Home = () => {
               </div>
               <span className='text-sm font-medium text-red-500'>회원탈퇴</span>
             </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 지난 질문 모아보기 모달 */}
+      <Modal show={showQuestionHistory} onClose={() => setShowQuestionHistory(false)}>
+        <div className='p-6'>
+          <div className='flex items-center justify-between mb-4'>
+            <h2 className='text-lg font-bold text-gray-900'>지난 질문</h2>
+            <button onClick={() => setShowQuestionHistory(false)} className='p-1 text-gray-400 hover:text-gray-600'>
+              <FiX className='text-xl' />
+            </button>
+          </div>
+          {historyLoading ? (
+            <p className='text-center text-gray-400 text-sm py-10'>불러오는 중...</p>
+          ) : questionHistory.length === 0 ? (
+            <p className='text-center text-gray-300 text-sm py-10'>아직 완료한 질문이 없어요</p>
+          ) : (
+            <div className='space-y-3 max-h-[65vh] overflow-y-auto -mx-1 px-1'>
+              {questionHistory.map(item => (
+                <div key={item.question_id} className='border border-gray-100 rounded-2xl p-4'>
+                  <p className='text-xs text-gray-400 mb-1.5'>
+                    {new Date(item.assigned_date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </p>
+                  <p className='text-[15px] font-bold text-gray-900 mb-3 leading-snug'>{item.question}</p>
+                  <div className='space-y-2'>
+                    <div className='bg-primary-50 rounded-xl px-3 py-2'>
+                      <p className='text-[10px] font-semibold text-primary-400 mb-0.5'>나</p>
+                      <p className='text-sm text-gray-800'>{item.my_answer || '-'}</p>
+                    </div>
+                    <div className='bg-gray-50 rounded-xl px-3 py-2'>
+                      <p className='text-[10px] font-semibold text-gray-400 mb-0.5'>파트너</p>
+                      <p className='text-sm text-gray-800'>{item.partner_answer || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* 소셜 연동 충돌 확인 모달 */}
+      <Modal show={!!linkConflict} onClose={() => setLinkConflict(null)}>
+        <div className='p-6'>
+          <h2 className='text-lg font-bold text-gray-900 mb-2'>{linkConflict?.label} 계정이 이미 연결돼 있어요</h2>
+          <p className='text-sm text-gray-500 mb-3'>
+            이 {linkConflict?.label} 계정은 현재 <span className='font-semibold text-gray-700'>{linkConflict?.conflictNickname}</span> 계정에 연결되어 있습니다.
+            지금 로그인한 계정으로 옮길까요?
+          </p>
+          {linkConflict?.conflictType === 'signup' && (
+            <div className='text-xs text-red-500 bg-red-50 rounded-xl p-3 mb-4'>
+              ⚠️ 기존 {linkConflict?.label} 계정({linkConflict?.conflictNickname})은 삭제됩니다.
+              {linkConflict?.conflictHasCouple && ' 해당 계정의 커플 연결·저장 데이터도 함께 삭제됩니다.'}
+            </div>
+          )}
+          <div className='flex gap-2'>
+            <button onClick={() => setLinkConflict(null)} className='flex-1 py-3 bg-gray-100 text-gray-600 font-medium rounded-xl'>취소</button>
+            <button onClick={handleResolveLinkConflict} className='flex-1 py-3 bg-primary-500 text-white font-medium rounded-xl'>옮겨서 연결</button>
           </div>
         </div>
       </Modal>
