@@ -7,16 +7,6 @@ export default defineConfig({
     react(),
   ],
 
-  server: {
-    proxy: {
-      '/api': {
-        target: 'https://openapi.naver.com',
-        changeOrigin: true,
-        rewrite: path => path.replace(/^\/api/, '')
-      }
-    },
-  },
-
   build: {
     outDir: '../dist',
     emptyOutDir: true,

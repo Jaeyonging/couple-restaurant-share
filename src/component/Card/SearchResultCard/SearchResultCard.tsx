@@ -52,6 +52,7 @@ const SearchResultCard = ({ data }: Props) => {
         setCurrentMarker({
             mapx: mapx,
             mapy: mapy,
+            name: title.replace(/<[^>]*>/g, ''),
         });
     };
 

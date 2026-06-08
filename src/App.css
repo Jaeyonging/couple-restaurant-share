@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 내 위치(GPS) 마커 물결 효과 — 카카오 CustomOverlay inline style에서 참조 */
+@keyframes ripple {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.6; }
+  100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
 @layer base {
   html {
     font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;

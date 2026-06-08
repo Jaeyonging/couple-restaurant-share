@@ -1,11 +1,12 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useQuery } from 'react-query';
-import { NaverMap } from '../../component/NaverMap';
+import { FiNavigation, FiX } from 'react-icons/fi';
+import { KakaoMap } from '../../component/KakaoMap';
 import ApiErrorBoundary from '../../boundary/ApiErrorBoundary';
 import { SearchFetcher } from '../../api/fetchHooks';
 import SearchInput from '../../component/SearchInput';
 import ResultsContainer from '../../component/Container/ResultsContainer';
-import { useMapStore } from '../../store/data';
+import { useMapStore, useToastStore } from '../../store/data';
 import { getFavPlaces } from '../../api/fetch';
 
 const QUICK_CHIPS = ['주변 맛집', '카페', '한식', '일식', '치킨', '술집']
@@ -23,12 +24,41 @@ const parseFavMarkers = (favPlaces: any[]): { mapx: number; mapy: number; name: 
 };
 
 const Map = () => {
-    const { search, longtitude, latitude, setSearch } = useMapStore();
+    const { search, longtitude, latitude, myLat, myLng, setSearch, setMyLocation } = useMapStore();
+    const { addToast } = useToastStore();
+    const [locating, setLocating] = useState(false);
+    const locationActive = myLat != null && myLng != null;
 
     const { data: favData } = useQuery('favPlaces', getFavPlaces, {
         staleTime: 1000 * 60 * 5,
     });
     const favMarkers = parseFavMarkers(favData?.favPlaces ?? []);
+
+    const handleMyLocation = () => {
+        // 이미 켜져 있으면 끄기 → 일반(지역) 검색으로 복귀
+        if (locationActive) {
+            setMyLocation(null, null);
+            addToast('info', '내 주변 검색을 껐어요. 이제 지역으로 검색할 수 있어요.');
+            return;
+        }
+        if (!navigator.geolocation) {
+            addToast('error', '이 기기는 위치 기능을 지원하지 않아요.');
+            return;
+        }
+        setLocating(true);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                // 위치만 설정 (지도 이동 + 마커). 검색은 사용자가 직접 — 강제 '맛집' 검색 안 함
+                setMyLocation(pos.coords.latitude, pos.coords.longitude);
+                setLocating(false);
+            },
+            () => {
+                addToast('error', '위치 권한이 필요해요. 브라우저 설정에서 허용해주세요.');
+                setLocating(false);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    };
 
     return (
         <div className='flex flex-col w-full bg-white' style={{ height: 'calc(100svh - 50px)' }}>
@@ -59,11 +89,38 @@ const Map = () => {
 
             {/* Map Area */}
             <div className='flex-1 relative overflow-hidden'>
-                <NaverMap
+                <KakaoMap
                     longtitude={longtitude}
                     latitude={latitude}
                     favMarkers={favMarkers}
                 />
+
+                {/* 내 위치 버튼 (토글) */}
+                <button
+                    onClick={handleMyLocation}
+                    disabled={locating}
+                    aria-label={locationActive ? '내 주변 검색 끄기' : '내 위치'}
+                    className={`absolute right-4 top-4 z-[5] w-11 h-11 rounded-full shadow-soft flex items-center justify-center active:scale-95 transition-all disabled:opacity-60 ${
+                        locationActive
+                            ? 'bg-primary-500 text-white hover:bg-primary-600'
+                            : 'bg-white text-primary-500 hover:bg-primary-50'
+                    }`}
+                >
+                    {locating
+                        ? <span className='w-4 h-4 border-2 border-primary-300 border-t-primary-500 rounded-full animate-spin' />
+                        : <FiNavigation className='text-lg' />}
+                </button>
+
+                {/* 내 주변 검색 중 안내 (탭하면 끄고 지역 검색으로 복귀) */}
+                {locationActive && (
+                    <button
+                        onClick={handleMyLocation}
+                        className='absolute left-1/2 -translate-x-1/2 top-4 z-[5] flex items-center gap-1.5 bg-primary-500 text-white text-xs font-medium pl-3 pr-2.5 py-2 rounded-full shadow-soft active:scale-95 transition-all whitespace-nowrap'
+                    >
+                        내 주변 검색 중
+                        <FiX className='text-sm' />
+                    </button>
+                )}
 
                 {/* 검색 결과 바텀시트 */}
                 <ApiErrorBoundary>
