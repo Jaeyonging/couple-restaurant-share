@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useFetchDataStore, useMapStore } from '../../store/data'
 import SearchResultCard from '../Card/SearchResultCard/SearchResultCard'
-import { fetchNaverSearchWithImage, fetchPlaceThumbnail } from '../../api/fetch'
-import { FiX, FiChevronUp, FiSearch } from 'react-icons/fi'
+import { fetchPlaceSearch, fetchPlaceThumbnail } from '../../api/fetch'
+import { FiX, FiChevronUp, FiSearch, FiList } from 'react-icons/fi'
 
 const MIN_HEIGHT = 25
 const MAX_HEIGHT = 92
@@ -23,7 +23,7 @@ const Skeleton = () => (
 
 const ResultsContainer = () => {
     const { data } = useFetchDataStore()
-    const { search: keyword } = useMapStore()
+    const { search: keyword, myLat, myLng } = useMapStore()
     const [isVisible, setIsVisible] = useState(false)
     const [sheetHeight, setSheetHeight] = useState(50)
 
@@ -76,7 +76,8 @@ const ResultsContainer = () => {
         if (loadingMore || !hasMore || !keyword) return
         setLoadingMore(true)
         try {
-            const res = await fetchNaverSearchWithImage(keyword, currentPage + 1)
+            const loc = (myLat != null && myLng != null) ? { lat: myLat, lng: myLng } : null
+            const res = await fetchPlaceSearch(keyword, currentPage + 1, loc)
             if (res.items?.length > 0) {
                 setAllItems(prev => [...prev, ...res.items])
                 setCurrentPage(p => p + 1)
@@ -89,7 +90,7 @@ const ResultsContainer = () => {
         } finally {
             setLoadingMore(false)
         }
-    }, [loadingMore, hasMore, keyword, currentPage])
+    }, [loadingMore, hasMore, keyword, currentPage, myLat, myLng])
 
     // 스크롤 하단 감지
     useEffect(() => {
@@ -130,7 +131,25 @@ const ResultsContainer = () => {
         setSheetHeight(prev => prev > 60 ? 50 : MAX_HEIGHT)
     }
 
-    if (!isVisible || !data) return null
+    if (!data) return null
+
+    // 시트를 닫은 상태 — 네비바 위에 "검색결과 보기" 알약 표시
+    if (!isVisible) {
+        return createPortal(
+            <div className='fixed left-0 right-0 pointer-events-none' style={{ bottom: 'calc(env(safe-area-inset-bottom) + 88px)', zIndex: 10000 }}>
+                <div className='max-w-[430px] mx-auto flex justify-center'>
+                    <button
+                        onClick={() => setIsVisible(true)}
+                        className='pointer-events-auto flex items-center gap-2 bg-primary-500 text-white text-sm font-semibold pl-4 pr-5 py-2.5 rounded-full shadow-lg active:scale-95 transition-all'
+                    >
+                        <FiList className='text-base' />
+                        검색결과 보기
+                    </button>
+                </div>
+            </div>,
+            document.body
+        )
+    }
 
     const skeletonCount = Math.max(0, allItems.length - enrichedItems.length)
 
@@ -164,14 +183,6 @@ const ResultsContainer = () => {
                     >
                         <FiChevronUp className={`text-xl transition-transform duration-200 ${sheetHeight > 60 ? 'rotate-180' : ''}`} />
                     </button>
-                </div>
-
-                {/* 결과 수 */}
-                <div className='px-4 pb-2 flex-shrink-0'>
-                    <p className='text-sm text-gray-500'>
-                        검색 결과 <span className='font-semibold text-gray-900'>{allItems.length}</span>개
-                        {hasMore && <span className='text-gray-400'> · 스크롤하면 더 보여요</span>}
-                    </p>
                 </div>
 
                 {/* 목록 */}

@@ -1,10 +1,17 @@
 import axios from "axios";
 import { API_URL } from "../types/types";
 
-export const fetchNaverSearchWithImage = async (keyword: string, page: number = 1) => {
-    const response = await axios.get(`${API_URL}/api/naver/searchPlace`, {
-        params: { keyword, page }
-    });
+export const fetchPlaceSearch = async (
+    keyword: string,
+    page: number = 1,
+    loc?: { lat: number; lng: number } | null
+) => {
+    const params: Record<string, any> = { keyword, page };
+    if (loc) {
+        params.x = loc.lng; // 경도
+        params.y = loc.lat; // 위도
+    }
+    const response = await axios.get(`${API_URL}/api/kakao/searchPlace`, { params });
     return response.data;
 };
 
@@ -16,7 +23,7 @@ export const fetchPlaceThumbnail = async (keyword: string, address: string): Pro
     if (thumbnailCache.has(key)) return thumbnailCache.get(key)!;
 
     try {
-        const response = await axios.get(`${API_URL}/api/naver/image`, {
+        const response = await axios.get(`${API_URL}/api/kakao/image`, {
             params: { keyword, address }
         });
         const thumbnail = response.data.thumbnail ?? null;

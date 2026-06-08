@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react'
-import { useFetchDataStore, useMarkerStore, useCurrentMarkerStore } from '../store/data';
+import { useFetchDataStore, useMarkerStore, useCurrentMarkerStore, useMapStore } from '../store/data';
 import { useQuery } from 'react-query';
 import Loading from '../lotties/Loading';
-import { fetchNaverSearchWithImage } from './fetch';
+import { fetchPlaceSearch } from './fetch';
 
 export const SearchFetcher = ({ children, keyword }: { children: React.ReactNode, keyword: string }) => {
     const { setData, resetData } = useFetchDataStore();
     const { setMarker, resetMarker } = useMarkerStore();
     const { setCurrentMarker, resetCurrentMarker } = useCurrentMarkerStore();
+    const { myLat, myLng } = useMapStore();
+    const loc = (myLat != null && myLng != null) ? { lat: myLat, lng: myLng } : null;
     const { data, isLoading, isError, error } = useQuery(
-        ['search', keyword],
-        () => fetchNaverSearchWithImage(keyword),
+        ['search', keyword, myLat, myLng],
+        () => fetchPlaceSearch(keyword, 1, loc),
         { enabled: !!keyword }
     );
 
@@ -34,6 +36,7 @@ export const SearchFetcher = ({ children, keyword }: { children: React.ReactNode
         const normalizedMarkers = (data.items ?? []).map((item: any) => ({
             mapx: typeof item.mapx === 'string' ? Number(item.mapx) : item.mapx,
             mapy: typeof item.mapy === 'string' ? Number(item.mapy) : item.mapy,
+            name: (item.title ?? '').replace(/<[^>]*>/g, ''),
         }));
 
         setMarker(normalizedMarkers);
