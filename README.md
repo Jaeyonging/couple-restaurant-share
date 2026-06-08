@@ -24,7 +24,7 @@
 **개발 인원**: 1명 (풀스택)  
 **배포**: https://couple.jaeyonging.com (Apache, PM2)
 
-초대코드로 파트너와 연결하면 맛집 리스트가 자동으로 공유됩니다. 네이버 지도 API로 식당을 검색해 즐겨찾기에 추가하고, 서로 별점과 댓글을 남길 수 있습니다. 여기에 방문 사진, 데이트 일정, 매일 하나씩 주고받는 오늘의 질문 기능이 더해져 있습니다.
+초대코드로 파트너와 연결하면 맛집 리스트가 자동으로 공유됩니다. 카카오 지도 API로 식당을 검색해 즐겨찾기에 추가하고, 서로 별점과 댓글을 남길 수 있습니다. 여기에 방문 사진, 데이트 일정, 매일 하나씩 주고받는 오늘의 질문 기능이 더해져 있습니다.
 
 ---
 
@@ -38,9 +38,9 @@
 
 ### 맛집 검색
 
-네이버 로컬 검색 API를 연동했습니다. 한 번 검색하면 결과가 DB에 쌓여서, 같은 키워드나 관련 키워드를 다시 검색할 때 점점 더 많은 결과를 볼 수 있습니다. 스크롤을 내리면 이렇게 누적된 결과가 추가로 로딩됩니다.
+카카오 로컬 키워드 검색 API를 연동했습니다. 키워드 검색은 카카오의 1~3페이지를 병렬 호출해 한 번에 최대 45건을 보여주고, 그 다음부터는 DB에 누적된 결과를 스크롤로 추가 로딩합니다. 같은 키워드나 관련 키워드를 다시 검색할수록 더 많은 결과가 쌓입니다. 장소 썸네일은 카카오(다음) 이미지 검색으로 가져옵니다.
 
-퀵 검색 칩(주변 맛집, 카페, 한식 등)과 내 위치 GPS 버튼도 있습니다.
+지도는 카카오 지도 SDK로 렌더링하며, 즐겨찾기 장소는 핑크 하트, 방문 완료 장소는 초록 체크 마커로 구분해 표시합니다. 마커를 누르면 해당 위치로 부드럽게(panTo) 이동합니다. 우상단의 내 위치 버튼을 누르면 현재 좌표 주변을 거리순으로 검색하며, 다시 누르면 해제되어 다른 지역을 키워드로 검색할 수 있습니다. 검색 결과 바텀시트를 닫아도 네비게이션 바 위의 "검색결과 보기" 버튼으로 다시 열 수 있습니다. 퀵 검색 칩(주변 맛집, 카페, 한식 등)도 제공합니다.
 
 ### 리뷰 및 방문 기록
 
@@ -69,17 +69,17 @@ Node.js + Express 4, MySQL, JWT, 카카오 OAuth, crypto(SHA-256)
 React 18 + TypeScript, Vite, Zustand, React Query, React Router v6, Tailwind CSS
 
 **External APIs**  
-Naver Map SDK, Naver Local Search API, Naver Image Search API
+Kakao Map SDK, Kakao Local Search API, Kakao Image Search API
 
 ---
 
 ## 핵심 구현 사항
 
-### 검색 결과 누적 캐시 (NaverSearchCache)
+### 검색 결과 누적 캐시 (PlaceSearchCache)
 
-네이버 API는 한 번에 최대 15건만 반환합니다. 이를 보완하기 위해 검색할 때마다 결과를 `NaverSearchCache` 테이블에 저장합니다.
+카카오 로컬 검색은 한 번에 최대 15건만 반환합니다. 이를 보완하기 위해 검색할 때마다 결과를 `PlaceSearchCache` 테이블에 저장합니다.
 
-- page 1: 네이버 API 호출 → 결과 반환 + DB 저장 + 백그라운드 썸네일 업데이트
+- page 1: 카카오 API 호출 → 결과 반환 + DB 저장 + 백그라운드 썸네일 업데이트
 - page 2+: `WHERE keyword LIKE '%keyword%' AND keyword != 'exact'` 쿼리로 다른 관련 키워드에서 쌓인 결과까지 포함
 
 "강남 맛집"을 검색한 기록이 쌓이면, 누군가 "맛집"을 검색할 때 2페이지부터 그 결과가 함께 나옵니다. 쓰면 쓸수록 결과가 많아지는 구조입니다.
@@ -98,9 +98,11 @@ Naver Map SDK, Naver Local Search API, Naver Image Search API
 
 배포 환경의 Apache가 DELETE 메서드를 차단(405 에러)합니다. 삭제/끊기 작업을 모두 POST로 구현했습니다.
 
-### 좌표 변수명 레거시
+### 좌표 변수명 레거시와 카카오 좌표 변환
 
 `useMapStore`의 `longtitude` 필드가 실제로는 위도 값을, `latitude` 필드가 경도 값을 저장합니다. 초기 개발 시 뒤바뀐 채로 굳어진 이슈로, 수정 시 주의가 필요합니다.
+
+카카오 로컬 검색은 좌표를 WGS84 십진수(x=경도, y=위도)로 반환하지만, 기존 코드가 `mapx/mapy`를 좌표 × 10^7 정수로 다루고 `Place_Locations`도 bigint이므로, 백엔드에서 `Math.round(좌표 * 1e7)`로 변환해 저장합니다. 지도 컴포넌트는 이를 다시 10^7로 나누어 사용해 기존 좌표 파이프라인을 그대로 유지합니다.
 
 ---
 
@@ -124,7 +126,7 @@ src/
 │   ├── Login/                    # 로그인 버튼, 카카오 OAuth 처리
 │   ├── NavBar/                   # 하단 탭 네비게이션
 │   ├── Toast/                    # Toast 알림
-│   ├── NaverMap.tsx              # 네이버 지도 SDK 연동
+│   ├── KakaoMap.tsx              # 카카오 지도 SDK 연동
 │   ├── RenderImg.tsx             # 이미지 로딩 (실패 시 noimg.jpeg)
 │   └── SearchInput.tsx           # 검색 입력 (엔터 시 키보드 내림)
 │
@@ -163,13 +165,19 @@ DB_PASSWORD=your_db_password
 DB_DATABASE=your_database
 IMAGE_URL=https://your-domain.com
 PASSWORD_SECRET=your_secret
-KAKAO_REST_API_KEY=your_kakao_key
+KAKAO_REST_API_KEY=your_kakao_rest_key   # 카카오 로컬/이미지 검색 + 로그인
 KAKAO_REDIRECT_URI=https://your-domain.com/login/auth
-NAVER_CLIENT_KEY=your_naver_key
+NAVER_CLIENT_KEY=your_naver_key          # 네이버 소셜 로그인용
 NAVER_CLIENT_SECRET=your_naver_secret
 VITE_API_URL=https://your-domain.com
 
 node app.js
+```
+
+프론트엔드(`couple-restaurant-share/.env`)에는 카카오 지도 SDK용 JavaScript 키가 필요합니다.
+
+```bash
+VITE_KAKAO_JS_KEY=your_kakao_javascript_key   # 카카오 개발자 콘솔의 JavaScript 키 (REST 키와 별개)
 ```
 
 ### 프론트엔드
@@ -181,16 +189,16 @@ npm run dev        # 개발 서버
 npm run build      # 빌드 → ../dist/
 ```
 
-### NaverSearchCache 테이블 생성
+### PlaceSearchCache 테이블 생성
 
 ```sql
-CREATE TABLE NaverSearchCache (
+CREATE TABLE PlaceSearchCache (
   id INT AUTO_INCREMENT PRIMARY KEY,
   keyword VARCHAR(255) NOT NULL,
   title VARCHAR(500) NOT NULL,
   link VARCHAR(1000),
   category VARCHAR(500),
-  description TEXT,
+  description VARCHAR(1000),
   telephone VARCHAR(100),
   address VARCHAR(500),
   roadAddress VARCHAR(500),
@@ -198,8 +206,7 @@ CREATE TABLE NaverSearchCache (
   mapy VARCHAR(50),
   thumbnail VARCHAR(1000),
   created_at DATETIME DEFAULT NOW(),
-  INDEX idx_keyword (keyword),
-  UNIQUE KEY unique_place (keyword(100), title(200), address(200))
+  UNIQUE KEY uniq_kw_title_addr (keyword(120), title(150), address(150))
 );
 ```
 
@@ -227,10 +234,10 @@ CREATE TABLE NaverSearchCache (
 | POST | `/meetday` | 만난 날짜 수정 |
 | POST | `/disconnect` | 연결 끊기 |
 
-### 네이버 검색 `/api/naver`
+### 카카오 검색 `/api/kakao`
 | 메서드 | 경로 | 설명 |
 |---|---|---|
-| GET | `/searchPlace?keyword=&page=` | 장소 검색 (page 1: 네이버 API, page 2+: DB 캐시) |
+| GET | `/searchPlace?keyword=&page=` | 장소 검색 (page 1: 카카오 API, page 2+: DB 캐시) |
 | GET | `/image?keyword=&address=` | 단건 썸네일 조회 |
 
 ### 즐겨찾기 `/api/favplace`
@@ -283,4 +290,4 @@ CREATE TABLE NaverSearchCache (
 | `CoupleActivity` | 파트너 활동 알림 |
 | `DailyQuestion` | 오늘의 질문 현황 |
 | `DailyQuestionAnswer` | 질문 답변 |
-| `NaverSearchCache` | 네이버 검색 결과 누적 캐시 (썸네일 포함) |
+| `PlaceSearchCache` | 카카오 검색 결과 누적 캐시 (썸네일 포함) |
