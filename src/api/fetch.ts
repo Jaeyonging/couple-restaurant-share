@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_URL, NAVER_CLIENT_KEY, NAVER_CLIENT_SECRET } from "../types/types";
+import { API_URL } from "../types/types";
 
 export const fetchNaverSearchWithImage = async (keyword: string, page: number = 1) => {
     const response = await axios.get(`${API_URL}/api/naver/searchPlace`, {
@@ -92,7 +92,7 @@ export const joinCouple = async (inviteCode: string, meetDay?: string) => {
 // 만난 날짜 수정
 export const updateMeetDay = async (meetDay: string) => {
     const token = localStorage.getItem('token');
-    const response = await axios.put(`${API_URL}/api/couple/meetDay`, 
+    const response = await axios.post(`${API_URL}/api/couple/meetDay`,
         { meetDay },
         {
             headers: {
@@ -189,7 +189,7 @@ export const getComments = async (favPlaceId: number) => {
 // 프로필 사진 업로드
 export const updateProfileImage = async (imgUrl: string) => {
     const token = localStorage.getItem('token');
-    const response = await axios.put(`${API_URL}/api/auth/profileImage`, 
+    const response = await axios.post(`${API_URL}/api/auth/profileImage`,
         { imgUrl },
         {
             headers: {
@@ -266,6 +266,63 @@ export const updateNickname = async (nickname: string) => {
                 Authorization: `Bearer ${token}`
             }
         }
+    );
+    return response.data;
+};
+
+// 비밀번호 찾기 - 인증번호 요청
+export const requestPasswordReset = async (email: string) => {
+    const response = await axios.post(`${API_URL}/api/auth/password/request`, { email });
+    return response.data;
+};
+
+// 비밀번호 찾기 - 인증번호 확인
+export const verifyPasswordCode = async (email: string, code: string) => {
+    const response = await axios.post(`${API_URL}/api/auth/password/verify`, { email, code });
+    return response.data;
+};
+
+// 비밀번호 찾기 - 새 비밀번호 등록
+export const resetPassword = async (email: string, code: string, newPassword: string) => {
+    const response = await axios.post(`${API_URL}/api/auth/password/reset`, { email, code, newPassword });
+    return response.data;
+};
+
+// 소셜 연동 현황 조회 (카카오/네이버 연결 여부)
+export const getSocialAccounts = async () => {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/api/auth/social/accounts`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data as { kakao: boolean; naver: boolean; primaryType: number };
+};
+
+// 소셜 계정 연동 (OAuth 콜백 후 호출)
+export const linkSocial = async (provider: 'kakao' | 'naver', code: string, state?: string) => {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/api/auth/link`,
+        { provider, code, state },
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+};
+
+// 소셜 연동 충돌 해결 (기존 계정에서 떼어내 현재 계정으로 연결)
+export const resolveLinkConflict = async (linkToken: string) => {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/api/auth/link/resolve`,
+        { linkToken },
+        { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+};
+
+// 소셜 연동 해제
+export const disconnectSocial = async (provider: 'kakao' | 'naver') => {
+    const token = localStorage.getItem('token');
+    const response = await axios.post(`${API_URL}/api/auth/link/disconnect`,
+        { provider },
+        { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;
 };
@@ -395,4 +452,13 @@ export const answerDailyQuestion = async (questionId: number, answer: string) =>
         headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
+};
+
+// 지난 질문 모아보기
+export const getQuestionHistory = async () => {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`${API_URL}/api/question/history`, {
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data as { history: { question_id: number; question: string; assigned_date: string; my_answer: string | null; partner_answer: string | null }[] };
 };
